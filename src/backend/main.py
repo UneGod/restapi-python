@@ -1,6 +1,6 @@
 from fastapi import FastAPI
-from router import router as event_router
-from user_router import router as user_router
+from events.router import router as event_router
+from users.router import router as user_router
 from fastapi.middleware.cors import CORSMiddleware
 
 import uvicorn

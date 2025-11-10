@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 import psycopg2
 
@@ -18,37 +18,41 @@ router = APIRouter(
 )
 
 @router.get("/")
-def getEvents():
-    cur = connection_db().cursor()
-    cur.execute('''
-        SELECT 
-        e.id,
-        e.title,
-        e.description,
-        et.name as event_type,
-        s.name as scale,
-        e.start_date,
-        e.end_date,
-        l.name as location,
-        e.status,
-        t.full_name as responsible_teacher,
-        e.estimated_budget,
-        pc.name as participant_category,
-        e.notes
-    FROM event e
-    LEFT JOIN event_type et ON e.event_type_id = et.id
-    LEFT JOIN scale s ON e.scale_id = s.id
-    LEFT JOIN location l ON e.location_id = l.id
-    LEFT JOIN teacher t ON e.responsible_teacher_id = t.id
-    LEFT JOIN participant_category pc ON e.participant_category_id = pc.id
-    ORDER BY e.id;
-    ''')
+async def getEvents():
+    try:
+        cur = connection_db().cursor()
+        cur.execute('''
+            SELECT 
+            e.id,
+            e.title,
+            e.description,
+            et.name as event_type,
+            s.name as scale,
+            e.start_date,
+            e.end_date,
+            l.name as location,
+            e.status,
+            t.full_name as responsible_teacher,
+            e.estimated_budget,
+            pc.name as participant_category,
+            e.notes
+        FROM event e
+        LEFT JOIN event_type et ON e.event_type_id = et.id
+        LEFT JOIN scale s ON e.scale_id = s.id
+        LEFT JOIN location l ON e.location_id = l.id
+        LEFT JOIN teacher t ON e.responsible_teacher_id = t.id
+        LEFT JOIN participant_category pc ON e.participant_category_id = pc.id
+        ORDER BY e.id;
+        ''')
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=404, detail="Error with DataBase")
     return cur.fetchall()
 
 
 
 @router.get("/{event_id}")
-def getOneEvent(event_id):
+async def getOneEvent(event_id):
     cur = connection_db().cursor()
     cur.execute(f'''
     SELECT 
