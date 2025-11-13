@@ -1,2 +1,7 @@
+#server and fastapi
 fastapi
 uvicorn
+#jwt
+authx
+#bd
+psycopg2
