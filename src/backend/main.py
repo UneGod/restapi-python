@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from events.router import router as event_router
 from users.router import router as user_router
+from admin.admin import router as admin_router
 from fastapi.middleware.cors import CORSMiddleware
 
 import uvicorn
@@ -17,6 +18,7 @@ app.add_middleware(
 
 app.include_router(router=event_router)
 app.include_router(router=user_router)
+app.include_router(router=admin_router)
 
 
 if __name__ == '__main__':

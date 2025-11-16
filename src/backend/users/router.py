@@ -19,8 +19,6 @@ router = APIRouter(
     prefix="/user"
 )
 
-
-
 config = AuthXConfig()
 config.JWT_SECRET_KEY = "test"
 config.JWT_ACCESS_COOKIE_NAME = "my_token"
@@ -38,12 +36,10 @@ async def login(creds: UserModel, response: Response):
         '''
     )
     res = cur.fetchall()
-    print(res)
-    print(res[0][2])
-    print(get_password_hash(creds.password))
+
     if creds.username == res[0][1] and verify_password(creds.password, res[0][2]):
-        token = await security.create_access_token(uid=res[0][0])
-        await response.set_cookie(config.JWT_ACCESS_COOKIE_NAME, token)
+        token = security.create_access_token(uid=str(res[0][0]))
+        response.set_cookie(config.JWT_ACCESS_COOKIE_NAME, token)
         return {"token": token}
     raise HTTPException(status_code=401, detail="Incorrect username or password")
 
@@ -71,3 +67,14 @@ async def register(creds: UserModel):
             raise HTTPException(status_code=401, detail="User exists")
     except Exception as e:
         return HTTPException(status_code=401, detail="UserExists")
+
+@router.get("/check_role")
+def check_role(username: str):
+    try:
+        cur = connection_db().cursor()
+        cur.execute(f'''
+                SELECT role FROM users WHERE username='{username}'
+                ''')
+        return cur.fetchone()
+    except:
+        raise HTTPException(status_code=401, detail="Error")

@@ -14,7 +14,7 @@ def connection_db():
     return conn
 
 router = APIRouter(
-    prefix="/event"
+    prefix="/events"
 )
 
 @router.get("/")
