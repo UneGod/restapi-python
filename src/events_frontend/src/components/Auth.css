@@ -1,0 +1,307 @@
+/* components/Auth.css */
+.auth-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.auth-card {
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 450px;
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.auth-header h1 {
+  color: #1f2937;
+  margin-bottom: 10px;
+  font-size: 2rem;
+}
+
+.auth-header p {
+  color: #6b7280;
+  font-size: 1.1rem;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-input {
+  padding: 15px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: #f8fafc;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #8b5cf6;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.form-input::placeholder {
+  color: #9ca3af;
+}
+
+.btn.full-width {
+  width: 100%;
+  padding: 15px;
+  font-size: 1.1rem;
+  margin-top: 10px;
+}
+
+.auth-footer {
+  text-align: center;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.auth-footer p {
+  color: #6b7280;
+  margin-bottom: 15px;
+}
+
+.auth-link {
+  color: #8b5cf6;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.auth-link:hover {
+  color: #7c3aed;
+  text-decoration: underline;
+}
+
+.error-message {
+  background: #fef2f2;
+  color: #dc2626;
+  padding: 15px;
+  border-radius: 12px;
+  text-align: center;
+  border: 1px solid #fecaca;
+  font-weight: 500;
+}
+
+.demo-credentials {
+  background: #f0f9ff;
+  border: 1px solid #e0f2fe;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+  text-align: center;
+}
+
+.demo-credentials h3 {
+  color: #0369a1;
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.demo-credentials p {
+  margin: 5px 0;
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .auth-card {
+    padding: 30px 25px;
+    margin: 20px;
+  }
+  
+  .auth-header h1 {
+    font-size: 1.7rem;
+  }
+}
+/* components/Auth.css */
+/* ... существующие стили ... */
+
+.demo-credentials {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.demo-credentials h3 {
+  color: #374151;
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.credentials-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 15px;
+}
+
+.credential-item {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.credential-item strong {
+  color: #1f2937;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.credential-item p {
+  margin: 4px 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.credential-item code {
+  background: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-top: 5px;
+}
+
+.role-badge.admin {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.role-badge.manager {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.role-badge.user {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+/* App.css - добавьте эти стили */
+.user-role {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-left: 5px;
+}
+
+.role-info {
+  color: #6b7280;
+  margin: 5px 0;
+}
+
+.role-info:last-of-type {
+  font-weight: 600;
+  color: #374151;
+}
+
+/* Адаптивность для демо-данных */
+@media (max-width: 768px) {
+  .credentials-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* components/Auth.css - добавьте */
+.debug-info {
+  font-size: 0.8rem;
+  color: #6b7280;
+  text-align: center;
+  margin-top: 10px;
+  font-style: italic;
+}
+
+/* App.css - добавьте */
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.user-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.role-loading {
+  margin-left: 5px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.user-role {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-left: 5px;
+}
+
+.role-info {
+  color: #6b7280;
+  margin: 5px 0;
+}
+
+.role-info:last-of-type {
+  font-weight: 600;
+  color: #374151;
+}

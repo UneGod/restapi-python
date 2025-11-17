@@ -262,3 +262,13 @@
     font-size: 0.9rem;
   }
 }
+
+.btnback{
+  background: white;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  align-items: center;
+  gap: 20px;
+  transition: transform 0.3s ease;
+}
