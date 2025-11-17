@@ -12,16 +12,34 @@ const AdminPanel = () => {
   const [tableData, setTableData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [userRole, setUserRole] = useState('');
   const location = useLocation();
 
-  const tables = [
-    { id: 'events', name: 'Мероприятия', icon: '🎪' },
-    { id: 'event_type', name: 'Типы мероприятий', icon: '🏷️' },
-    { id: 'scale', name: 'Масштабы', icon: '📊' },
-    { id: 'teacher', name: 'Преподаватели', icon: '👨‍🏫' },
-    { id: 'location', name: 'Места проведения', icon: '📍' },
-    { id: 'participant_category', name: 'Категории участников', icon: '🎓' }
+  // Таблицы для разных ролей
+  const adminTables = [
+    { id: 'users', name: ' Пользователи', icon: '👥', role: 'admin' },
+    { id: 'events', name: ' Мероприятия', icon: '🎪', role: 'all' },
+    { id: 'event_type', name: ' Типы мероприятий', icon: '🏷️', role: 'all' },
+    { id: 'scale', name: ' Масштабы', icon: '📊', role: 'all' },
+    { id: 'teacher', name: ' Преподаватели', icon: '👨‍🏫', role: 'all' },
+    { id: 'location', name: ' Места проведения', icon: '📍', role: 'all' },
+    { id: 'participant_category', name: ' Категории участников', icon: '🎓', role: 'all' }
   ];
+
+  // Получаем роль пользователя
+  useEffect(() => {
+    const storedRole = localStorage.getItem('userRole');
+    setUserRole(storedRole || 'user');
+  }, []);
+
+  // Фильтруем таблицы по роли
+  const getAvailableTables = () => {
+    if (userRole === 'admin') {
+      return adminTables;
+    } else {
+      return adminTables.filter(table => table.role === 'all');
+    }
+  };
 
   // Загрузка статистики
   const fetchStats = async () => {
@@ -34,12 +52,33 @@ const AdminPanel = () => {
   };
 
   // Загрузка данных таблицы
+  // components/AdminPanel.jsx - обновите fetchTableData
+// Загрузка данных таблицы
   const fetchTableData = async (tableName) => {
     setLoading(true);
     setError('');
     try {
-      const response = await axios.get(`${API_BASE_URL}/admin/tables/${tableName}`);
-      setTableData(response.data);
+      let response;
+      
+      if (tableName === 'users') {
+        // Загрузка пользователей
+        response = await axios.get(`${API_BASE_URL}/user/get_users`);
+        console.log('Users response:', response.data);
+        
+        // Преобразуем массив массивов в массив объектов
+        const usersData = response.data.map(userArray => ({
+          id: userArray[0],
+          username: userArray[1],
+          role: userArray[2]
+        }));
+        
+        setTableData(usersData);
+      } else {
+        // Загрузка других таблиц
+        response = await axios.get(`${API_BASE_URL}/admin/tables/${tableName}`);
+        setTableData(response.data);
+      }
+      
       setCurrentTable(tableName);
     } catch (err) {
       setError('❌ Не удалось загрузить данные таблицы');
@@ -51,17 +90,62 @@ const AdminPanel = () => {
 
   // Удаление записи
   const handleDelete = async (id) => {
-    if (!window.confirm('Вы уверены, что хотите удалить эту запись?')) {
+    if (!window.confirm('Вы уверены, что хотите удалить этого пользователя?')) {
       return;
     }
 
     try {
-      await axios.delete(`${API_BASE_URL}/admin/tables/${currentTable}/${id}`);
+      if (currentTable === 'users') {
+        await axios.delete(`${API_BASE_URL}/user/delete_user/${id}`);
+      } else {
+        await axios.delete(`${API_BASE_URL}/admin/tables/${currentTable}/${id}`);
+      }
+      
+      // Обновляем данные таблицы после удаления
       fetchTableData(currentTable);
+      // Обновляем статистику
       fetchStats();
     } catch (err) {
-      setError('❌ Не удалось удалить запись');
+      setError(err.response?.data?.detail || '❌ Не удалось удалить запись');
       console.error('Error deleting record:', err);
+    }
+  };
+
+// components/AdminPanel.jsx - обновите handleChangeRole
+// Изменение роли пользователя
+  const handleChangeRole = async (userId, newRole) => {
+    try {
+      console.log('Changing role for user:', userId, 'to:', newRole);
+      
+      const response = await axios.put(`${API_BASE_URL}/user/change_role`, {
+        id: userId,        // Изменил с user_id на id
+        new_role: newRole
+      });
+      
+      console.log('Role change response:', response.data);
+      
+      // Обновляем данные таблицы
+      fetchTableData('users');
+      
+      // Показываем успешное сообщение
+      setError(`✅ Роль пользователя успешно изменена на "${newRole}"`);
+      setTimeout(() => setError(''), 3000);
+      
+    } catch (err) {
+      const errorMessage = err.response?.data?.detail || '❌ Не удалось изменить роль пользователя';
+      setError(errorMessage);
+      console.error('Error changing role:', err);
+    }
+  };
+
+  // Создание нового пользователя
+  const handleCreateUser = async (userData) => {
+    try {
+      await axios.post(`${API_BASE_URL}/user/register`, userData);
+      fetchTableData('users');
+    } catch (err) {
+      setError('❌ Не удалось создать пользователя');
+      console.error('Error creating user:', err);
     }
   };
 
@@ -70,17 +154,111 @@ const AdminPanel = () => {
     
     // Определяем активную таблицу из URL
     const pathTable = location.pathname.split('/').pop();
-    if (pathTable && pathTable !== 'admin' && tables.some(t => t.id === pathTable)) {
+    const availableTables = getAvailableTables();
+    
+    if (pathTable && pathTable !== 'admin' && availableTables.some(t => t.id === pathTable)) {
       fetchTableData(pathTable);
     } else {
-      // По умолчанию загружаем мероприятия
-      fetchTableData('events');
+      // По умолчанию загружаем первую доступную таблицу
+      const defaultTable = availableTables[0]?.id || 'events';
+      fetchTableData(defaultTable);
     }
-  }, [location]);
+  }, [location, userRole]);
 
   const getTableDisplayName = () => {
-    const table = tables.find(t => t.id === currentTable);
-    return table ? table.name : 'Мероприятия';
+    const table = getAvailableTables().find(t => t.id === currentTable);
+    return table ? table.name : 'Данные';
+  };
+
+  // Рендер данных для таблицы пользователей
+  // components/AdminPanel.jsx - обновите функцию renderUsersTable
+// Рендер данных для таблицы пользователей
+  const renderUsersTable = () => {
+    return (
+      <table className="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>👤 Имя пользователя</th>
+            <th>👑 Роль</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          {tableData.map((user) => (
+            <tr key={user.id}>
+              <td>{user.id}</td>
+              <td>
+                <strong>{user.username}</strong>
+                {user.username === localStorage.getItem('username') && (
+                  <span className="current-user-badge"> (Вы)</span>
+                )}
+              </td>
+              <td>
+                <select 
+                  value={user.role} 
+                  onChange={(e) => handleChangeRole(user.id, e.target.value)}
+                  className="role-select"
+                  disabled={user.username === localStorage.getItem('username')}
+                >
+                  <option value="user">👤 Пользователь</option>
+                  <option value="manager">📊 Менеджер</option>
+                  <option value="admin">👑 Администратор</option>
+                </select>
+              </td>
+              <td className="actions">
+                <button 
+                  className="btn small danger"
+                  onClick={() => handleDelete(user.id)}
+                  disabled={user.username === localStorage.getItem('username')}
+                  title={user.username === localStorage.getItem('username') ? 'Нельзя удалить себя' : 'Удалить пользователя'}
+                >
+                  🗑️
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    );
+  };
+
+  // Рендер данных для других таблиц
+  const renderDefaultTable = () => {
+    return (
+      <table className="data-table">
+        <thead>
+          <tr>
+            {Object.keys(tableData[0] || {}).map(key => (
+              <th key={key}>{key}</th>
+            ))}
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          {tableData.map((row, index) => (
+            <tr key={index}>
+              {Object.values(row).map((value, cellIndex) => (
+                <td key={cellIndex}>
+                  {typeof value === 'boolean' ? (value ? '✅' : '❌') : 
+                   value === null ? '—' : 
+                   String(value)}
+                </td>
+              ))}
+              <td className="actions">
+                <button className="btn small primary">✏️</button>
+                <button 
+                  className="btn small danger"
+                  onClick={() => handleDelete(row.id || index)}
+                >
+                  🗑️
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    );
   };
 
   const renderTableContent = () => {
@@ -105,6 +283,11 @@ const AdminPanel = () => {
       return (
         <div className="empty-state">
           <p>📭 Данные не найдены</p>
+          {currentTable === 'users' && userRole === 'admin' && (
+            <button className="btn primary" onClick={() => {/* Открыть модалку создания */}}>
+              👥 Добавить пользователя
+            </button>
+          )}
         </div>
       );
     }
@@ -112,55 +295,35 @@ const AdminPanel = () => {
     return (
       <div className="table-container">
         <div className="table-header">
-          <h3>📋 {getTableDisplayName()} ({tableData.length})</h3>
-          <button className="btn primary">
-            ➕ Добавить запись
-          </button>
+          <h3>{getTableDisplayName()} ({tableData.length})</h3>
+          {currentTable === 'users' && userRole === 'admin' && (
+            <button className="btn primary" onClick={() => {/* Открыть модалку создания */}}>
+              👥 Добавить пользователя
+            </button>
+          )}
         </div>
         
         <div className="table-wrapper">
-          <table className="data-table">
-            <thead>
-              <tr>
-                {Object.keys(tableData[0]).map(key => (
-                  <th key={key}>{key}</th>
-                ))}
-                <th>Действия</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tableData.map((row, index) => (
-                <tr key={index}>
-                  {Object.values(row).map((value, cellIndex) => (
-                    <td key={cellIndex}>
-                      {typeof value === 'boolean' ? (value ? '✅' : '❌') : 
-                       value === null ? '—' : 
-                       String(value)}
-                    </td>
-                  ))}
-                  <td className="actions">
-                    <button className="btn small primary">✏️</button>
-                    <button 
-                      className="btn small danger"
-                      onClick={() => handleDelete(row.id || index)}
-                    >
-                      🗑️
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {currentTable === 'users' ? renderUsersTable() : renderDefaultTable()}
         </div>
       </div>
     );
   };
 
+  const availableTables = getAvailableTables();
+
   return (
     <div className="admin-panel">
       <div className="admin-header">
         <h1>⚙️ Панель администрирования</h1>
-        <p>Управление базой данных мероприятий</p>
+        <p>
+          Управление базой данных мероприятий 
+          {userRole === 'admin' && ' и пользователями'}
+        </p>
+        <div className="user-info">
+          Вы вошли как: <strong>{localStorage.getItem('username')}</strong> 
+          <span className="user-role">({userRole})</span>
+        </div>
       </div>
 
       {/* Статистика */}
@@ -168,7 +331,7 @@ const AdminPanel = () => {
         <div className="stat-card">
           <div className="stat-icon">📊</div>
           <div className="stat-info">
-            <h3>{stats.tableCount || 0}</h3>
+            <h3>{stats.tableCount || 7}</h3>
             <p>Таблиц в БД</p>
           </div>
         </div>
@@ -182,18 +345,18 @@ const AdminPanel = () => {
         </div>
         
         <div className="stat-card">
-          <div className="stat-icon">👨‍🏫</div>
+          <div className="stat-icon">👥</div>
           <div className="stat-info">
-            <h3>{stats.teacherCount || 0}</h3>
-            <p>Преподавателей</p>
+            <h3>{stats.userCount || 0}</h3>
+            <p>Пользователей</p>
           </div>
         </div>
         
         <div className="stat-card">
-          <div className="stat-icon">📍</div>
+          <div className="stat-icon">👨‍🏫</div>
           <div className="stat-info">
-            <h3>{stats.locationCount || 0}</h3>
-            <p>Мест проведения</p>
+            <h3>{stats.teacherCount || 0}</h3>
+            <p>Преподавателей</p>
           </div>
         </div>
       </div>
@@ -203,7 +366,7 @@ const AdminPanel = () => {
         <div className="sidebar">
           <h3>🗂️ Таблицы БД</h3>
           <nav className="table-nav">
-            {tables.map(table => (
+            {availableTables.map(table => (
               <Link
                 key={table.id}
                 to={`/admin/${table.id}`}
@@ -212,9 +375,16 @@ const AdminPanel = () => {
               >
                 <span className="nav-icon">{table.icon}</span>
                 <span className="nav-text">{table.name}</span>
+                {table.role === 'admin' && <span className="admin-only-badge">👑</span>}
               </Link>
             ))}
           </nav>
+          
+          {userRole !== 'admin' && (
+            <div className="role-warning">
+              <p>🔒 Некоторые функции доступны только администраторам</p>
+            </div>
+          )}
         </div>
 
         {/* Основной контент */}

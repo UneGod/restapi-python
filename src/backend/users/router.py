@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Response
 import psycopg2
 from authx import AuthX, AuthXConfig
-from .models import UserModel
+from .models import UserModel, ChangeRoleRequest
 from .auth import get_password_hash, verify_password
 
 def connection_db():
@@ -69,7 +69,7 @@ async def register(creds: UserModel):
         return HTTPException(status_code=401, detail="UserExists")
 
 @router.get("/check_role")
-def check_role(username: str):
+async def check_role(username: str):
     try:
         cur = connection_db().cursor()
         cur.execute(f'''
@@ -78,3 +78,64 @@ def check_role(username: str):
         return cur.fetchone()
     except:
         raise HTTPException(status_code=401, detail="Error")
+
+
+@router.get("/get_users")
+async def get_users():
+    try:
+        cur = connection_db().cursor()
+        cur.execute(f'''
+                SELECT id, username, role FROM users;
+                ''')
+
+        return cur.fetchall()
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=401, detail="Error")
+
+@router.delete("/delete_user/{user_id}")
+async def delete_user(user_id: int):
+    conn = connection_db()
+    conn.cursor().execute(
+            f'''
+                DELETE FROM users
+                WHERE id={user_id};
+            '''
+        )
+    conn.commit()
+    return {"Ok": True}
+
+def all_users():
+    try:
+        cur = connection_db().cursor()
+        cur.execute(f'''
+                SELECT id, username, role FROM users;
+                ''')
+        return cur.fetchall()
+    except Exception as e:
+        return 0
+
+def find_user_by_id(user_id: int):
+    for user in all_users():
+        if user[0] == user_id:
+            return user
+    return None
+
+def find_user_index_by_id(user_id: int):
+    for i, user in enumerate(all_users()):
+        if user[0] == user_id:
+            return i
+    return -1
+
+@router.put("/change_role")
+async def change_role(request: ChangeRoleRequest):
+    conn = connection_db()
+    conn.cursor().execute(
+            f'''
+                UPDATE users
+                SET role = '{request.new_role}'
+                WHERE id={request.id};
+            '''
+        )
+    conn.commit()
+    return {"Ok": True}

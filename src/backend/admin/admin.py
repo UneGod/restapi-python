@@ -38,6 +38,8 @@ async def get_admin_stats():
     nums_scale = cur.fetchall()
     cur.execute('SELECT COUNT(*) FROM participant_category;')
     nums_pc = cur.fetchall()
+    cur.execute('SELECT COUNT(*) FROM users;')
+    nums_users = cur.fetchall()
     return {
         "tableCount": num_tables,
         "eventCount": nums_event[0][0],
@@ -45,7 +47,8 @@ async def get_admin_stats():
         "locationCount": nums_location[0][0],
         "eventTypeCount": nums_event_type[0][0],
         "scaleCount": nums_scale[0][0],
-        "participantCategoryCount": nums_pc[0][0]
+        "participantCategoryCount": nums_pc[0][0],
+        "userCount": nums_users[0][0],
     }
 
 @router.get("/tables/{table_name}")
@@ -75,7 +78,14 @@ async def get_table_data(table_name: str):
 async def delete_table_record(table_name: str, record_id: int):
     # Реализуйте логику удаления записи
     try:
-        # Ваш код удаления
-        return {"message": "Record deleted successfully"}
+        conn = connection_db()
+        conn.cursor().execute(
+                f'''
+                    DELETE FROM {table_name}
+                    WHERE id={record_id};
+                '''
+            )
+        conn.commit()
+        return {"Ok": True}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
