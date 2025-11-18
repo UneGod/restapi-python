@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import '../App.css';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'http://192.168.3.212:8000';
 
 const EventsSearch = () => {
   const [eventId, setEventId] = useState('');
@@ -212,6 +212,17 @@ const EventsSearch = () => {
         <header className="header">
           <h1>🎯 Поиск событий</h1>
           <p>Ищите события по ID, имени или просматривайте все доступные события ✨</p>
+          <div className="header-actions">
+            <Link to="/admin" className="btn secondary">
+              ⚙️ Перейти в админ-панель
+            </Link>
+            <button 
+              className="btn primary"
+              onClick={() => {/* Здесь можно открыть модальное окно или перенаправить в админку */}}
+            >
+              🎪 Создать событие
+            </button>
+          </div>
         </header>
 
         <div className="search-forms">

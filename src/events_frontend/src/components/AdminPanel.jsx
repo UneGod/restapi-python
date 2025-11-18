@@ -3,8 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import './AdminPanel.css';
+import CreateEventModal from './CreateEventModal';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'http://192.168.3.212:8000';
 
 const AdminPanel = () => {
   const [stats, setStats] = useState({});
@@ -13,6 +14,7 @@ const AdminPanel = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [userRole, setUserRole] = useState('');
+  const [isCreateEventModalOpen, setIsCreateEventModalOpen] = useState(false);
   const location = useLocation();
 
   // Таблицы для разных ролей
@@ -109,6 +111,29 @@ const AdminPanel = () => {
       setError(err.response?.data?.detail || '❌ Не удалось удалить запись');
       console.error('Error deleting record:', err);
     }
+  };
+
+  const handleOpenCreateEventModal = () => {
+    setIsCreateEventModalOpen(true);
+  };
+
+  // Функция для закрытия модального окна
+  const handleCloseCreateEventModal = () => {
+    setIsCreateEventModalOpen(false);
+  };
+
+  const handleEventCreated = (newEvent) => {
+    console.log('New event created:', newEvent);
+    // Обновляем таблицу событий если мы на вкладке событий
+    if (currentTable === 'events') {
+      fetchTableData('events');
+    }
+    // Обновляем статистику
+    fetchStats();
+    
+    // Показываем сообщение об успехе
+    setError('✅ Событие успешно создано!');
+    setTimeout(() => setError(''), 3000);
   };
 
 // components/AdminPanel.jsx - обновите handleChangeRole
@@ -294,13 +319,23 @@ const AdminPanel = () => {
 
     return (
       <div className="table-container">
-        <div className="table-header">
-          <h3>{getTableDisplayName()} ({tableData.length})</h3>
-          {currentTable === 'users' && userRole === 'admin' && (
-            <button className="btn primary" onClick={() => {/* Открыть модалку создания */}}>
-              👥 Добавить пользователя
-            </button>
-          )}
+          <div className="table-header">
+            <h3>{getTableDisplayName()} ({tableData.length})</h3>
+            <div className="table-actions">
+              {currentTable === 'events' && (
+                <button 
+                  className="btn primary" 
+                  onClick={handleOpenCreateEventModal}
+                >
+                  🎪 Добавить событие
+                </button>
+              )}
+              {currentTable === 'users' && userRole === 'admin' && (
+                <button className="btn primary" onClick={handleOpenCreateModal}>
+                  👥 Добавить пользователя
+                </button>
+              )}
+            </div>
         </div>
         
         <div className="table-wrapper">
@@ -392,6 +427,11 @@ const AdminPanel = () => {
           {renderTableContent()}
         </div>
       </div>
+        <CreateEventModal
+          isOpen={isCreateEventModalOpen}
+          onClose={handleCloseCreateEventModal}
+          onEventCreated={handleEventCreated}
+        />
     </div>
   );
 };

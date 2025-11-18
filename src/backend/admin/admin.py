@@ -76,7 +76,6 @@ async def get_table_data(table_name: str):
 
 @router.delete("/tables/{table_name}/{record_id}")
 async def delete_table_record(table_name: str, record_id: int):
-    # Реализуйте логику удаления записи
     try:
         conn = connection_db()
         conn.cursor().execute(

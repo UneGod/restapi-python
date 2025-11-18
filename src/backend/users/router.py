@@ -28,20 +28,23 @@ security = AuthX(config=config)
 
 @router.post("/login")
 async def login(creds: UserModel, response: Response):
-    conn = connection_db()
-    cur = conn.cursor()
-    cur.execute(
-        f'''
-            SELECT * FROM users WHERE username='{creds.username}'
-        '''
-    )
-    res = cur.fetchall()
+    try:
+        conn = connection_db()
+        cur = conn.cursor()
+        cur.execute(
+            f'''
+                SELECT * FROM users WHERE username='{creds.username}'
+            '''
+        )
+        res = cur.fetchall()
 
-    if creds.username == res[0][1] and verify_password(creds.password, res[0][2]):
-        token = security.create_access_token(uid=str(res[0][0]))
-        response.set_cookie(config.JWT_ACCESS_COOKIE_NAME, token)
-        return {"token": token}
-    raise HTTPException(status_code=401, detail="Incorrect username or password")
+        if creds.username == res[0][1] and verify_password(creds.password, res[0][2]):
+            token = security.create_access_token(uid=str(res[0][0]))
+            response.set_cookie(config.JWT_ACCESS_COOKIE_NAME, token)
+            return {"token": token}
+        raise HTTPException(status_code=401, detail="Incorrect username or password")
+    except Exception as e:
+        raise HTTPException(status_code=404, detail="Not found")
 
 @router.post("/register")
 async def register(creds: UserModel):

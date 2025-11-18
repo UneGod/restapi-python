@@ -109,9 +109,17 @@ def getOneEvent(event_name):
     ''')
     return cur.fetchall()
 
-#@router.post("/add_event")
-#def addEvent(name, description, user_name):
-#    conn = connection_db()
-#    conn.cursor().execute(f"INSERT INTO event (name, description, user_id) VALUES ('{name}', '{description}', (SELECT id FROM users WHERE name = '{user_name}'));")
-#    conn.commit()
-#    return {"Ok": True}
+@router.post("/add_event")
+def addEvent(name, description, user_name):
+    try:
+        conn = connection_db()
+        conn.cursor().execute(f'''
+        INSERT INTO event (name, description, user_id) VALUES 
+        ('{name}', '{description}', 
+        (SELECT id FROM users WHERE name = '{user_name}'));
+        '''
+        )
+        conn.commit()
+        return {"Ok": True}
+    except Exception as e:
+        raise HTTPException(status_code=404, detail="Not found")
